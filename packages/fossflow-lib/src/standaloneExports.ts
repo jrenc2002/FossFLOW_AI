@@ -8,7 +8,10 @@ export type { IsoflowProps, InitialData } from 'src/types';
 export * from 'src/types/model';
 
 // Export compact format utilities
-export { transformFromCompactFormat, transformToCompactFormat } from 'src/utils/exportOptions';
+export {
+  transformFromCompactFormat,
+  transformToCompactFormat
+} from 'src/utils/exportOptions';
 
 // Export i18n locales
 export { default as enUS } from 'src/i18n/en-US';

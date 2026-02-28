@@ -282,22 +282,24 @@ export async function generateDiagramWithAI(
   // Determine the output language based on locale
   const langMap: Record<string, string> = {
     'zh-CN': '中文(简体中文)',
-    'zh': '中文(简体中文)',
+    zh: '中文(简体中文)',
     'zh-TW': '中文(繁體中文)',
-    'ja': '日本語',
-    'ko': '한국어',
-    'fr': 'français',
-    'de': 'Deutsch',
-    'es': 'español',
-    'pt': 'português',
-    'ru': 'русский',
-    'hi': 'हिन्दी',
-    'bn': 'বাংলা',
-    'id': 'Bahasa Indonesia',
-    'en': 'English',
+    ja: '日本語',
+    ko: '한국어',
+    fr: 'français',
+    de: 'Deutsch',
+    es: 'español',
+    pt: 'português',
+    ru: 'русский',
+    hi: 'हिन्दी',
+    bn: 'বাংলা',
+    id: 'Bahasa Indonesia',
+    en: 'English',
     'en-US': 'English'
   };
-  const outputLang = locale ? (langMap[locale] || langMap[locale.split('-')[0]] || locale) : '';
+  const outputLang = locale
+    ? langMap[locale] || langMap[locale.split('-')[0]] || locale
+    : '';
   const langInstruction = outputLang
     ? `\n\n## Language Requirement\n\nIMPORTANT: All text content (title in "t", item names, and descriptions) MUST be written in ${outputLang}. Only the JSON keys and icon IDs remain in English.`
     : '';
