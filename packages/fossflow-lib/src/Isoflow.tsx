@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { ThemeProvider } from '@mui/material/styles';
 import { Box } from '@mui/material';
 import { theme } from 'src/styles/theme';
@@ -34,6 +34,7 @@ const App = ({
   const model = useModelStore((state) => {
     return modelFromModelStore(state);
   });
+  const prevModelRef = useRef<string>('');
 
   const { load } = initialDataManager;
 
@@ -54,6 +55,12 @@ const App = ({
 
   useEffect(() => {
     if (!initialDataManager.isReady || !onModelUpdated) return;
+
+    // Deep compare to avoid firing onModelUpdated when the model
+    // hasn't actually changed (prevents infinite update loops)
+    const modelJson = JSON.stringify(model);
+    if (modelJson === prevModelRef.current) return;
+    prevModelRef.current = modelJson;
 
     onModelUpdated(model);
   }, [model, initialDataManager.isReady, onModelUpdated]);

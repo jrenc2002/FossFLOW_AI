@@ -5,14 +5,21 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 
 // Ensure PUBLIC_URL ends with slash for consistent path construction
 const publicUrl = process.env.PUBLIC_URL || '';
-const basePath = publicUrl ? (publicUrl.endsWith('/') ? publicUrl : publicUrl + '/') : '/';
+const basePath = publicUrl
+  ? publicUrl.endsWith('/')
+    ? publicUrl
+    : publicUrl + '/'
+  : '/';
+
+const defaultLanguage = process.env.DEFAULT_LANGUAGE || 'zh-CN';
 
 i18n
   .use(Backend)
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
-    fallbackLng: 'en-US',
+    fallbackLng: defaultLanguage,
+    lng: defaultLanguage,
     debug: process.env.NODE_ENV === 'development',
     interpolation: {
       escapeValue: false
@@ -23,7 +30,8 @@ i18n
     },
     detection: {
       order: ['localStorage'],
-      caches: ['localStorage']
+      caches: ['localStorage'],
+      lookupLocalStorage: 'i18nextLng'
     }
   });
 

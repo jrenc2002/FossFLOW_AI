@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Isoflow } from 'fossflow';
 import { flattenCollections } from '@isoflow/isopacks/dist/utils';
 import isoflowIsopack from '@isoflow/isopacks/dist/isoflow';
@@ -14,6 +14,7 @@ import { storageManager } from './services/storageService';
 import ChangeLanguage from './components/ChangeLanguage';
 import { allLocales } from 'fossflow';
 import { useIconPackManager, IconPackName } from './services/iconPackManager';
+import { AIGenerateDialog } from './components/AIGenerateDialog';
 import './App.css';
 import { BrowserRouter, Route, Routes, useParams } from 'react-router-dom';
 
@@ -64,6 +65,7 @@ function EditorPage() {
   const [lastAutoSave, setLastAutoSave] = useState<Date | null>(null);
   const [showStorageManager, setShowStorageManager] = useState(false);
   const [showDiagramManager, setShowDiagramManager] = useState(false);
+  const [showAIDialog, setShowAIDialog] = useState(false);
   const [serverStorageAvailable, setServerStorageAvailable] = useState(false);
   const isReadonlyUrl =
     window.location.pathname.startsWith('/display/') && readonlyDiagramId;
@@ -114,12 +116,20 @@ function EditorPage() {
 
   // Check for server storage availability
   useEffect(() => {
+    let cancelled = false;
     storageManager
       .initialize()
       .then(() => {
-        setServerStorageAvailable(storageManager.isServerStorage());
+        if (!cancelled) {
+          setServerStorageAvailable(storageManager.isServerStorage());
+        }
       })
-      .catch(console.error);
+      .catch(() => {
+        // Server not available — silently use session storage
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // Check if readonlyDiagramId exists - if exists, load diagram in view-only mode
@@ -409,14 +419,25 @@ function EditorPage() {
     }
   };
 
-  const handleModelUpdated = (model: any) => {
+  // Use refs so the callback doesn't depend on changing state values
+  const diagramNameRef = useRef(diagramName);
+  diagramNameRef.current = diagramName;
+  const isReadonlyUrlRef = useRef(isReadonlyUrl);
+  isReadonlyUrlRef.current = isReadonlyUrl;
+
+  const handleModelUpdated = useCallback((model: any) => {
     // Store the current model state whenever it updates
     // The model from Isoflow contains the COMPLETE state including all icons
+    //
+    // IMPORTANT: Do NOT call setDiagramData() here!
+    // diagramData is passed as initialData to <Isoflow>, so updating it
+    // triggers useInitialDataManager.load() → model store update →
+    // onModelUpdated → handleModelUpdated → infinite loop!
+    // Only update currentModel (used for saving/exporting).
 
-    // Simply store the complete model as-is since it has everything
     const updatedModel = {
-      title: model.title || diagramName || 'Untitled',
-      icons: model.icons || [], // This already includes ALL icons (default + imported)
+      title: model.title || diagramNameRef.current || 'Untitled',
+      icons: model.icons || [],
       colors: model.colors || defaultColors,
       items: model.items || [],
       views: model.views || [],
@@ -424,12 +445,11 @@ function EditorPage() {
     };
 
     setCurrentModel(updatedModel);
-    setDiagramData(updatedModel);
 
-    if (!isReadonlyUrl) {
+    if (!isReadonlyUrlRef.current) {
       setHasUnsavedChanges(true);
     }
-  };
+  }, []);
 
   const exportDiagram = () => {
     // Use the most recent model data - prefer currentModel as it gets updated by handleModelUpdated
@@ -583,6 +603,33 @@ function EditorPage() {
     );
   };
 
+  // Handle AI-generated diagram
+  const handleAIGenerate = (generatedData: DiagramData) => {
+    console.log('App: Loading AI-generated diagram');
+
+    // Merge with existing icons (keep loaded icon packs)
+    const mergedData: DiagramData = {
+      ...generatedData,
+      icons: iconPackManager.loadedIcons,
+      colors: generatedData.colors?.length
+        ? generatedData.colors
+        : defaultColors,
+      fitToScreen: true
+    };
+
+    setDiagramName(mergedData.title || 'AI Generated Diagram');
+    setCurrentDiagram(null); // AI diagrams are new, not saved yet
+    setCurrentModel(mergedData);
+    setDiagramData(mergedData);
+    setHasUnsavedChanges(true);
+    setShowAIDialog(false);
+    setFossflowKey((prev) => prev + 1);
+
+    console.log(
+      `App: AI diagram loaded with ${mergedData.items?.length || 0} items`
+    );
+  };
+
   // i18n
   const { t, i18n } = useTranslation('app');
   
@@ -728,6 +775,18 @@ function EditorPage() {
               style={{ backgroundColor: '#007bff' }}
             >
               💾 {t('nav.exportFile')}
+            </button>
+            <button
+              onClick={() => {
+                return setShowAIDialog(true);
+              }}
+              style={{
+                backgroundColor: '#6f42c1',
+                color: 'white',
+                fontWeight: 'bold'
+              }}
+            >
+              🤖 {t('nav.aiGenerate') || 'AI Generate'}
             </button>
             <button
               onClick={() => {
@@ -979,6 +1038,17 @@ function EditorPage() {
           currentDiagramData={currentModel || diagramData}
           onClose={() => {
             return setShowDiagramManager(false);
+          }}
+        />
+      )}
+
+      {/* AI Generate Dialog */}
+      {showAIDialog && (
+        <AIGenerateDialog
+          onGenerate={handleAIGenerate}
+          existingIcons={iconPackManager.loadedIcons}
+          onClose={() => {
+            return setShowAIDialog(false);
           }}
         />
       )}

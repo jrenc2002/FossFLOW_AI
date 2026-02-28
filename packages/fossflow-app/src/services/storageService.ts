@@ -26,32 +26,39 @@ class ServerStorage implements StorageService {
   constructor(baseUrl: string = '') {
     // In production (Docker), use relative paths (nginx proxy)
     // In development, use localhost:3001
-    const isDevelopment = window.location.hostname === 'localhost' && window.location.port === '3000';
+    const isDevelopment =
+      window.location.hostname === 'localhost' &&
+      window.location.port === '3000';
     this.baseUrl = baseUrl || (isDevelopment ? 'http://localhost:3001' : '');
   }
 
   async isAvailable(): Promise<boolean> {
     // Re-check availability if cache is stale
     const now = Date.now();
-    if (this.available !== null &&
-        this.availabilityCheckedAt !== null &&
-        (now - this.availabilityCheckedAt) < this.AVAILABILITY_CACHE_MS) {
+    if (
+      this.available !== null &&
+      this.availabilityCheckedAt !== null &&
+      now - this.availabilityCheckedAt < this.AVAILABILITY_CACHE_MS
+    ) {
       return this.available;
     }
 
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2000); // 2 second timeout
       const response = await fetch(`${this.baseUrl}/api/storage/status`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
-        signal: AbortSignal.timeout(5000) // 5 second timeout
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
       const data = await response.json();
       this.available = data.enabled;
       this.availabilityCheckedAt = Date.now();
       console.log(`Server storage availability: ${this.available}`);
       return this.available ?? false;
-    } catch (error) {
-      console.log('Server storage not available:', error);
+    } catch {
+      // Server not running is expected in dev mode — silently fall back
       this.available = false;
       this.availabilityCheckedAt = Date.now();
       return false;
@@ -66,7 +73,9 @@ class ServerStorage implements StorageService {
     if (!response.ok) {
       const errorText = await response.text();
       console.error('Failed to list diagrams:', errorText);
-      throw new Error(`Failed to list diagrams: ${response.status} ${errorText}`);
+      throw new Error(
+        `Failed to list diagrams: ${response.status} ${errorText}`
+      );
     }
 
     const diagrams = await response.json();
@@ -79,7 +88,9 @@ class ServerStorage implements StorageService {
   }
 
   async loadDiagram(id: string): Promise<Model> {
-    console.log(`ServerStorage: Loading diagram ${id} from ${this.baseUrl}/api/diagrams/${id}`);
+    console.log(
+      `ServerStorage: Loading diagram ${id} from ${this.baseUrl}/api/diagrams/${id}`
+    );
     try {
       const response = await fetch(`${this.baseUrl}/api/diagrams/${id}`, {
         method: 'GET',
@@ -89,12 +100,18 @@ class ServerStorage implements StorageService {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error(`ServerStorage: Failed to load diagram ${id}: ${response.status} ${errorText}`);
-        throw new Error(`Failed to load diagram: ${response.status} ${errorText}`);
+        console.error(
+          `ServerStorage: Failed to load diagram ${id}: ${response.status} ${errorText}`
+        );
+        throw new Error(
+          `Failed to load diagram: ${response.status} ${errorText}`
+        );
       }
 
       const data = await response.json();
-      console.log(`ServerStorage: Successfully loaded diagram ${id}, items: ${data.items?.length || 0}`);
+      console.log(
+        `ServerStorage: Successfully loaded diagram ${id}, items: ${data.items?.length || 0}`
+      );
       return data;
     } catch (error) {
       console.error(`ServerStorage: Error loading diagram ${id}:`, error);
@@ -114,7 +131,9 @@ class ServerStorage implements StorageService {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error(`ServerStorage: Failed to save diagram ${id}: ${response.status} ${errorText}`);
+        console.error(
+          `ServerStorage: Failed to save diagram ${id}: ${response.status} ${errorText}`
+        );
         throw new Error(`Failed to save diagram: ${response.status}`);
       }
 
@@ -156,7 +175,7 @@ class SessionStorage implements StorageService {
   async listDiagrams(): Promise<DiagramInfo[]> {
     const listStr = sessionStorage.getItem(this.LIST_KEY);
     if (!listStr) return [];
-    
+
     const list = JSON.parse(listStr);
     return list.map((item: any) => ({
       ...item,
@@ -172,32 +191,32 @@ class SessionStorage implements StorageService {
 
   async saveDiagram(id: string, data: Model): Promise<void> {
     sessionStorage.setItem(`${this.KEY_PREFIX}${id}`, JSON.stringify(data));
-    
+
     // Update list
     const list = await this.listDiagrams();
-    const existing = list.findIndex(d => d.id === id);
+    const existing = list.findIndex((d) => d.id === id);
     const info: DiagramInfo = {
       id,
       name: (data as any).name || 'Untitled Diagram',
       lastModified: new Date(),
       size: JSON.stringify(data).length
     };
-    
+
     if (existing >= 0) {
       list[existing] = info;
     } else {
       list.push(info);
     }
-    
+
     sessionStorage.setItem(this.LIST_KEY, JSON.stringify(list));
   }
 
   async deleteDiagram(id: string): Promise<void> {
     sessionStorage.removeItem(`${this.KEY_PREFIX}${id}`);
-    
+
     // Update list
     const list = await this.listDiagrams();
-    const filtered = list.filter(d => d.id !== id);
+    const filtered = list.filter((d) => d.id !== id);
     sessionStorage.setItem(this.LIST_KEY, JSON.stringify(filtered));
   }
 
@@ -220,6 +239,11 @@ class StorageManager {
   }
 
   async initialize(): Promise<StorageService> {
+    // If already initialized, return cached storage
+    if (this.activeStorage) {
+      return this.activeStorage;
+    }
+
     // Try server storage first
     if (await this.serverStorage.isAvailable()) {
       console.log('Using server storage');

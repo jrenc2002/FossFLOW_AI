@@ -74,15 +74,16 @@ class DOMErrorBoundary extends Component<DOMErrorBoundaryProps, DOMErrorBoundary
       // Schedule a recovery attempt after the current render cycle
       setTimeout(() => {
         this.setState({
-          hasError: false
+          hasError: false,
+          errorCount: 0
         });
       }, 0);
     }
   }
 
   componentDidUpdate(_prevProps: DOMErrorBoundaryProps, prevState: DOMErrorBoundaryState) {
-    // Reset error state if we successfully rendered after an error
-    if (prevState.hasError && !this.state.hasError) {
+    // Reset errorCount only when transitioning from error -> no error, and only if it's not already 0
+    if (prevState.hasError && !this.state.hasError && this.state.errorCount !== 0) {
       this.setState({ errorCount: 0 });
     }
   }
