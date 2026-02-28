@@ -783,11 +783,12 @@ function EditorPage() {
               style={{
                 backgroundColor: '#6f42c1',
                 color: 'white',
-                fontWeight: 'bold'
+                fontWeight: 'bold',
               }}
             >
               🤖 {t('nav.aiGenerate') || 'AI Generate'}
             </button>
+
             <button
               onClick={() => {
                 if (currentDiagram && hasUnsavedChanges) {
@@ -846,6 +847,33 @@ function EditorPage() {
               </span>
             </>
           )}
+        </span>
+      </div>
+
+      {/* 原项目致谢 */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: '12px',
+        padding: '4px 0',
+        fontSize: '11px',
+        color: '#999',
+        backgroundColor: '#fafafa',
+        borderBottom: '1px solid #eee',
+      }}>
+        <span>
+          Forked from{' '}
+          <a href="https://github.com/stan-smith/FossFLOW" target="_blank" rel="noopener noreferrer" style={{ color: '#666', textDecoration: 'underline' }}>
+            stan-smith/FossFLOW
+          </a>
+        </span>
+        <span style={{ color: '#ddd' }}>|</span>
+        <span>
+          Powered by{' '}
+          <a href="https://github.com/markmanx/isoflow" target="_blank" rel="noopener noreferrer" style={{ color: '#666', textDecoration: 'underline' }}>
+            markmanx/isoflow
+          </a>
         </span>
       </div>
 
@@ -1052,6 +1080,8 @@ function EditorPage() {
           }}
         />
       )}
+
+
     </div>
   );
 }

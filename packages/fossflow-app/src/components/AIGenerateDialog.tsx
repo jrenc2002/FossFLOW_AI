@@ -21,7 +21,17 @@ interface AIGenerateDialogProps {
   onClose: () => void;
 }
 
-type Tab = 'generate' | 'settings' | 'schema';
+type Tab = 'generate' | 'settings' | 'schema' | 'sponsor';
+
+// 作者信息
+const AUTHOR_INFO = {
+  name: 'Jrenc',
+  github: 'https://github.com/jrenc2002',
+  projectRepo: 'https://github.com/jrenc2002/FossFLOW_AI',
+  email: '',
+  wechatId: '',
+  bio: '独立开发者，热爱开源 🚀',
+};
 
 export function AIGenerateDialog({
   onGenerate,
@@ -172,18 +182,20 @@ export function AIGenerateDialog({
           }}
         >
           <h2 style={{ margin: 0 }}>🤖 {t('ai.title')}</h2>
-          <button
-            onClick={onClose}
-            style={{
-              background: 'none',
-              border: 'none',
-              fontSize: '24px',
-              cursor: 'pointer',
-              padding: '4px 8px'
-            }}
-          >
-            ×
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button
+              onClick={onClose}
+              style={{
+                background: 'none',
+                border: 'none',
+                fontSize: '24px',
+                cursor: 'pointer',
+                padding: '4px 8px'
+              }}
+            >
+              ×
+            </button>
+          </div>
         </div>
 
         {/* Tabs */}
@@ -198,7 +210,8 @@ export function AIGenerateDialog({
             [
               { key: 'generate', label: `✨ ${t('ai.tabGenerate')}` },
               { key: 'schema', label: `📋 ${t('ai.tabJSON')}` },
-              { key: 'settings', label: `⚙️ ${t('ai.tabSettings')}` }
+              { key: 'settings', label: `⚙️ ${t('ai.tabSettings')}` },
+              { key: 'sponsor', label: '☕ 赞赏' }
             ] as { key: Tab; label: string }[]
           ).map((tab) => (
             <button
@@ -840,6 +853,237 @@ export function AIGenerateDialog({
                 }}
               >
                 💾 {t('ai.configSavedNote')}
+              </div>
+            </div>
+          )}
+          {/* Sponsor Tab */}
+          {activeTab === 'sponsor' && (
+            <div style={{ padding: '8px 0' }}>
+              {/* 简介 */}
+              <div style={{
+                textAlign: 'center',
+                marginBottom: '24px',
+                padding: '16px',
+                backgroundColor: '#f8f9fa',
+                borderRadius: '12px',
+              }}>
+                <p style={{ margin: '0 0 6px', fontSize: '18px', fontWeight: 'bold' }}>
+                  {AUTHOR_INFO.name}
+                </p>
+                <p style={{ margin: '0 0 12px', fontSize: '14px', color: '#666' }}>
+                  {AUTHOR_INFO.bio}
+                </p>
+                <p style={{ margin: 0, fontSize: '13px', color: '#888', lineHeight: 1.8 }}>
+                  FossFLOW 是一个开源项目，所有功能完全免费。
+                  <br />
+                  如果它对你有帮助，欢迎请我喝杯咖啡 ☕️
+                </p>
+              </div>
+
+              {/* 收款码 */}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'center',
+                gap: '20px',
+                marginBottom: '24px',
+              }}>
+                {/* 微信支付 */}
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{
+                    width: '140px',
+                    height: '140px',
+                    borderRadius: '12px',
+                    overflow: 'hidden',
+                    border: '2px solid #07c160',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: '#f5f5f5',
+                  }}>
+                    {/* 把 wechat-pay.png 放到 public/ 目录后取消注释下面这行，删掉占位文字 */}
+                    {/* <img src="/wechat-pay.png" alt="微信支付" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> */}
+                    <span style={{ fontSize: '13px', color: '#999', textAlign: 'center', padding: '8px' }}>
+                      微信收款码<br /><span style={{ fontSize: '11px' }}>放到 public/</span>
+                    </span>
+                  </div>
+                  <p style={{ margin: '6px 0 0', fontSize: '13px', color: '#07c160', fontWeight: 'bold' }}>微信支付</p>
+                </div>
+
+                {/* 支付宝 */}
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{
+                    width: '140px',
+                    height: '140px',
+                    borderRadius: '12px',
+                    overflow: 'hidden',
+                    border: '2px solid #1677ff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: '#f5f5f5',
+                  }}>
+                    {/* 把 alipay.png 放到 public/ 目录后取消注释下面这行，删掉占位文字 */}
+                    {/* <img src="/alipay.png" alt="支付宝" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> */}
+                    <span style={{ fontSize: '13px', color: '#999', textAlign: 'center', padding: '8px' }}>
+                      支付宝收款码<br /><span style={{ fontSize: '11px' }}>放到 public/</span>
+                    </span>
+                  </div>
+                  <p style={{ margin: '6px 0 0', fontSize: '13px', color: '#1677ff', fontWeight: 'bold' }}>支付宝</p>
+                </div>
+              </div>
+
+              {/* 分隔线 */}
+              <div style={{ borderTop: '1px solid #eee', margin: '0 0 20px' }} />
+
+              {/* 加微信交流 */}
+              <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+                <p style={{ margin: '0 0 12px', fontSize: '15px', fontWeight: 'bold', color: '#333' }}>
+                  💬 加微信交流
+                </p>
+                <div style={{
+                  borderRadius: '12px',
+                  overflow: 'hidden',
+                  border: '2px solid #07c160',
+                  width: '160px',
+                  height: '160px',
+                  backgroundColor: '#f5f5f5',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto',
+                }}>
+                  {/* 把 wechat-qr.png（微信个人二维码）放到 public/ 目录后取消注释下面这行 */}
+                  {/* <img src="/wechat-qr.png" alt="微信二维码" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> */}
+                  <span style={{ fontSize: '13px', color: '#999', textAlign: 'center', padding: '8px' }}>
+                    微信个人二维码<br /><span style={{ fontSize: '11px' }}>放到 public/</span>
+                  </span>
+                </div>
+                {AUTHOR_INFO.wechatId && (
+                  <p style={{ margin: '8px 0 0', fontSize: '13px', color: '#666' }}>
+                    微信号：
+                    <span
+                      onClick={() => {
+                        navigator.clipboard.writeText(AUTHOR_INFO.wechatId);
+                      }}
+                      style={{
+                        fontFamily: 'monospace',
+                        fontWeight: 'bold',
+                        cursor: 'pointer',
+                        borderBottom: '1px dashed #999',
+                      }}
+                      title="点击复制"
+                    >
+                      {AUTHOR_INFO.wechatId}
+                    </span>
+                  </p>
+                )}
+              </div>
+
+              {/* 分隔线 */}
+              <div style={{ borderTop: '1px solid #eee', margin: '0 0 16px' }} />
+
+              {/* 链接 */}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'center',
+                gap: '16px',
+                flexWrap: 'wrap',
+              }}>
+                <a
+                  href={AUTHOR_INFO.projectRepo}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    backgroundColor: '#24292e',
+                    color: 'white',
+                    textDecoration: 'none',
+                    fontSize: '13px',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  ⭐ GitHub 项目
+                </a>
+                <a
+                  href={AUTHOR_INFO.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    backgroundColor: '#f5f5f5',
+                    color: '#333',
+                    textDecoration: 'none',
+                    fontSize: '13px',
+                    fontWeight: 'bold',
+                    border: '1px solid #ddd',
+                  }}
+                >
+                  👤 关注作者
+                </a>
+                {AUTHOR_INFO.email && (
+                  <a
+                    href={`mailto:${AUTHOR_INFO.email}`}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      padding: '8px 16px',
+                      borderRadius: '8px',
+                      backgroundColor: '#f5f5f5',
+                      color: '#333',
+                      textDecoration: 'none',
+                      fontSize: '13px',
+                      fontWeight: 'bold',
+                      border: '1px solid #ddd',
+                    }}
+                  >
+                    ✉️ 邮件联系
+                  </a>
+                )}
+              </div>
+
+              {/* 底部 */}
+              <p style={{
+                margin: '20px 0 0',
+                fontSize: '12px',
+                color: '#bbb',
+                textAlign: 'center',
+                lineHeight: 1.6,
+              }}>
+                感谢每一位支持者 ❤️ 如果觉得好用，给个 Star 也是很大的鼓励！
+              </p>
+
+              {/* 原项目致谢 */}
+              <div style={{
+                marginTop: '16px',
+                padding: '12px',
+                backgroundColor: '#f0f4f8',
+                borderRadius: '8px',
+                textAlign: 'center',
+                fontSize: '12px',
+                color: '#888',
+                lineHeight: 1.8,
+              }}>
+                <p style={{ margin: '0 0 4px', fontWeight: 'bold', color: '#666' }}>🙏 致谢</p>
+                <p style={{ margin: 0 }}>
+                  本项目基于{' '}
+                  <a href="https://github.com/stan-smith/FossFLOW" target="_blank" rel="noopener noreferrer" style={{ color: '#007bff', textDecoration: 'none' }}>
+                    stan-smith/FossFLOW
+                  </a>{' '}
+                  二次开发，底层渲染引擎来自{' '}
+                  <a href="https://github.com/markmanx/isoflow" target="_blank" rel="noopener noreferrer" style={{ color: '#007bff', textDecoration: 'none' }}>
+                    markmanx/isoflow
+                  </a>
+                  。感谢原作者的开源贡献！
+                </p>
               </div>
             </div>
           )}
